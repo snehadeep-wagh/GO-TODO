@@ -46,6 +46,8 @@ var taskCollection = Client.Database(mongo_db).Collection(mongo_col)
 func GetAllTasks(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/x-www-form-urlencoded")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "GET")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*100)
 	defer cancel()
@@ -82,17 +84,24 @@ func CreateTask(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Methods", "POST")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 
-	ctx := context.Background()
-
-	var t model.ToDoStruct
-	err := json.NewDecoder(r.Body).Decode(&t)
-	if err != nil {
+	if err := r.ParseForm(); err != nil {
 		log.Fatal(err)
 	}
+	ctx := context.Background()
+	var t model.ToDoStruct
+	// var temp = r.Body
+	// temp1, _ := io.ReadAll(temp)
+	// fmt.Print(string(temp1))
+	// err := json.NewDecoder(r.Body).Decode(&t)
+	// if err != nil {
+	// 	fmt.Print(" Error: ")
+	// 	log.Fatal(err.Error())
+	// }
+	t.Task = r.FormValue("Task")
 	t.ID = primitive.NewObjectID()
 	t.Status = false
 
-	_, err = taskCollection.InsertOne(ctx, t)
+	_, err := taskCollection.InsertOne(ctx, t)
 	if err != nil {
 		log.Fatal(err)
 		return
